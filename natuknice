@@ -1,0 +1,109 @@
+This document contains comments and more detailed descriptions in the Croatian language
+
+yarn add --dev hardhat
+yarn hardhat
+-sad smo dobili foldere idemo instalirat depend:
+yarn add --dev @nomiclabs/hardhat-ethers@npm:hardhat-deploy-ethers ethers @nomiclabs/hardhat-etherscan @nomiclabs/hardhat-waffle chai ethereum-waffle hardhat hardhat-contract-sizer hardhat-deploy hardhat-gas-reporter prettier prettier-plugin-solidity solhint solidity-coverage dotenv
+
+kad smo napisali contract udremo yarn hardhat compile da vidimo je uredu sve sa kompajlerom
+
+"printWidth" - koliko linija moze biti duga prije prelaska u novu liniju
+
+na 14:04 triba vidit kako obavit Chainlink Verifikaciju
+
+tribamo importat chainlink code sa:
+import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
+i nakon toga udrit :
+yarn add --dev @chainlink/contracts
+
+-kad u tom VRFConsumerBaseV2.sol pogledamo vidimo da funkcija
+fulfilRandomWords je internat virtual a to virtual znaci da je ocekuje da ce bit overitana
+
+yarn global add hardhat-shorthand --kad smo to udrili ne tribamo pisat yarn hardhat nego samo hh
+
+Modulo function --zapravo ostatak nakon dijeljenja
+
+function fulfillRandomWords(uint256 /_requestId _/, --ovo znaci da cemo tu slat uint256 al ne nuzno requestId
+
+checkUpkeep -provjerava za nas jel vrijeme da dobijemo random number koji ce updejtat trenutnog pobjednika i poslat mu pare
+jako je bitno naglasit da je ovo off chain ..run off chain by node from Chainlink keeper network
+
+override - kad vidimo ovo u funkciji znaci da vec negdi postoji funkcija koju modificiramo
+
+bytes calldata - znaci da mozemo specificirat drugu funkciju
+
+timestamp - trenutni timestamp of blokchain
+
+//calldata doesnt work with strings -pa je minjamo sa memory
+
+The subscription ID that this contract uses for funding requests
+-dobijemo ga kad se registriramo na chainlink stranicu
+-za development chain je teze malo dobit ga
+
+-describe ne moze pripoznat promise pa smo zato makli iz njega async
+
+-unit test only run on local network
+-staging test only ru on testnet
+
+Razlika izmedu VRF1(funding contract) i VRF2(funding suscription)
+
+chainlink VRF je put kako verifiably get a random number
+Chainlink keeper- automaticli triger to get random winner based of some time interval without us to having interact with
+/\*
+Local network detected! Deploying mocks..
+deploying "VRFCoordinatorV2Mock" (tx: 0x12925340c9bd03dbda39b85b0c207149c2bc46f19e3a0c825e92642eb0713167)...: deployed at 0x5FbDB2315678afecb367f032d93F642f64180aa3 with 2539340 gas
+Mocks Deployed!
+
+---
+
+You are deploying to a local network, you'll need a local network running to interact
+Please run `yarn hardhat console --network localhost` to interact with the deployed smart contracts!
+
+---
+
+## deploying "Raffle" (tx: 0x9607ff81dd68ddc110b830bde80a5d55a56487dca4bc768b2c4bdb3a74aa0c42)...: deployed at 0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9 with 1227954 gas
+
+\*/
+
+---
+
+Error: VM Exception while processing transaction: reverted with custom error 'InvalidConsumer()'
+
+-triba pravu verziju instalirat:
+yarn add --dev @chainlink/contracts@0.4.1
+
+ako neuspije to onda pise da i ovo moze pomoc u deploy raffle:
+f (developmentChains.includes(network.name)) {
+await vrfCoordinatorV2Mock.addConsumer(subscriptionId, raffle.address);
+
+    log('Consumer is added');
+
+}
+
+---
+
+subscription:
+View your transaction here:
+0x032b117357dad0ea4d8b5d14dc0b09a348cc46aba1e5b6d4842ee4e6cf7945fa
+
+reusing "Raffle" at 0x7f6A07d20c8F9813084d395Bf6571
+
+Successfully submitted source code for contract
+contracts/Raffle.sol:Raffle at 0x7f6A07d20c8F9813084d395Bf65719cD7E5fEc7b
+for verification on the block explorer. Waiting for verification result...
+
+Successfully verified contract Raffle on Etherscan.
+https://goerli.etherscan.io/address/0x7f6A07d20c8F9813084d395Bf65719cD7E5fEc7b#code
+
+adding consumer :
+
+View your transaction here:
+0x37baf3795b2b468e24acc5452cc84f2c97c84f7527c2d3712219b4672e376e13
+
+Cili proces sazeto :
+-prva transakcija ce bit enter raffle -vidit cemo na etherscanu da je balance contracta narasta
+-Ako je sve ispunjeno iz checkUpkeep onda cemo vidit transakciju u Raffle Upkeepu (Perform Upkeep)
+-Zatim Perform Upkeep zove Chanlinke VRF - vidimo transakciju u chainlink VRF
+-Na kraju je balance contract 0 jer je novac otisa pobjedniku
+
+-Zasto ne vidimo u etherscan transakcije fulfillrandomwords i performUpkeep - zato jer je pozvana kroz VRFCoordinator i te transakcije mzemo vidjeti u Internal Txns
